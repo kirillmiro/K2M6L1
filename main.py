@@ -1,8 +1,9 @@
 import json
 import time
-import base64
 import requests
-
+import base64
+from PIL import Image
+from io import BytesIO
 
 class FusionBrainAPI:
 
@@ -25,7 +26,7 @@ class FusionBrainAPI:
             "width": width,
             "height": height,
             "generateParams": {
-                "query": prompt  # исправлено, чтобы вставлялся реальный prompt
+                "query": f"{prompt}"
             }
         }
 
@@ -46,33 +47,17 @@ class FusionBrainAPI:
 
             attempts -= 1
             time.sleep(delay)
-        raise Exception("Generation not completed in time.")
 
-
-def generate_image_from_text(prompt, API_url, API_key, SECRET_key):
-    api = FusionBrainAPI(API_url, API_key, SECRET_key)
-    pipeline_id = api.get_pipeline()
-    uuid = api.generate(prompt, pipeline_id)
-    files = api.check_generation(uuid)
-
-    saved_files = []
-    for i, b64_data in enumerate(files):
-        # исправляем паддинг
-        b64_data += "=" * ((4 - len(b64_data) % 4) % 4)
-        img_bytes = base64.b64decode(b64_data)
-        filename = f"image_{i}.png"  # автоматическое уникальное имя
-        with open(filename, "wb") as f:
-            f.write(img_bytes)
-        print(f"Saved {filename}")
-        saved_files.append(filename)
-
-    return saved_files
-
+    def save_image(self, base64_string, file_path):
+        decode_data = base64.b64decode(base64_string)
+        image = Image.open(BytesIO(decode_data))
+        image.save(file_path)
 
 if __name__ == '__main__':
-    API_url = 'https://api-key.fusionbrain.ai/'
     API_key = 'DE6767F15635759248E4A6BFFF085F50'
     SECRET_key = '2349A0B69A7355452CEEFBB3DFCEA100'
-    prompt = "Cat"
-    saved_files = generate_image_from_text(prompt, API_url, API_key, SECRET_key)
-    print("All images saved:", saved_files)
+    api = FusionBrainAPI('https://api-key.fusionbrain.ai/', API_key, SECRET_key)
+    pipeline_id = api.get_pipeline()
+    uuid = api.generate("Море", pipeline_id)
+    files = api.check_generation(uuid)
+    api.save_image(files[0], "file.png")
