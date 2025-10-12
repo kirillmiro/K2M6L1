@@ -1,3 +1,3 @@
-TOKEN = 'YOUR_TOKEN'
-API_key = 'YOUR_API_key'
-SECRET_key = 'YOUR_SECRET_key'
+TOKEN = ''
+API_key = ''
+SECRET_key = ''
